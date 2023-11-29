@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 
 import Center_circle from '@/assets/T2T_Proteom.svg'
 import Arabidopsis_circle from '@/assets/Arabidopsis_thalinana.svg'
@@ -8,10 +9,10 @@ import Oryza_circle from '@/assets/Oryza_sativa.svg'
 import Zea_circle from '@/assets/Zea_mays.svg'
 
 const surroundingImages = ref([
-  { src: Arabidopsis_circle, alt: 'Arabidopsis_circle' },
-  { src: Glycine_circle, alt: 'Glycine_circle' },
-  { src: Oryza_circle, alt: 'Oryza_circle' },
-  { src: Zea_circle, alt: 'Zea_circle' }
+  { src: Arabidopsis_circle, alt: 'Arabidopsis' },
+  { src: Glycine_circle, alt: 'Glycine' },
+  { src: Oryza_circle, alt: 'Oryza' },
+  { src: Zea_circle, alt: 'Zea' }
 ])
 
 import Auxins from '@/assets/Auxins.svg'
@@ -38,14 +39,31 @@ const cytokinins_list = ref([
 
 const parentSize = ref({ width: 0, height: 0 })
 const containerRef = ref<HTMLElement | null>(null)
+const searchAPI = ref<string[]>([])
 
 const cytokininsDisplay = ref(false)
 const hideCytokinins = () => {
   cytokininsDisplay.value = false
 }
-const showCytokinins = (event: MouseEvent) => {
+const showCytokinins = (event: MouseEvent, imageAlt: string) => {
   event.stopPropagation()
   cytokininsDisplay.value = true
+  searchAPI.value.push(imageAlt)
+}
+
+const router = useRouter()
+const showDatabaseResult = (event: MouseEvent, imageAlt: string) => {
+  event.stopPropagation()
+  searchAPI.value.push(imageAlt)
+  const plant = searchAPI.value[0]
+  const cyto = searchAPI.value[1]
+  router.push({
+    path: '/result',
+    query: {
+      plant: plant,
+      cyto: cyto
+    }
+  })
 }
 
 function updateParentSize() {
@@ -194,7 +212,7 @@ onBeforeUnmount(() => {
       :alt="image.alt"
       class="rounded-circle position-absolute surroundingImages"
       :style="getSurroundingImageStyle(index)"
-      @click="showCytokinins"
+      @click="showCytokinins($event, image.alt)"
     />
   </div>
   <div
@@ -203,11 +221,12 @@ onBeforeUnmount(() => {
     class="position-relative justify-content-center align-items-center d-flex flex-grow-1 flex-colum h-100"
   >
     <img
-      v-for="(items, index) in cytokinins_list"
-      :src="items.src"
-      :alt="items.alt"
+      v-for="(image, index) in cytokinins_list"
+      :src="image.src"
+      :alt="image.alt"
       :style="cytokinins_list_style(index)"
       class="position-absolute"
+      @click="showDatabaseResult($event, image.alt)"
     />
   </div>
 </template>

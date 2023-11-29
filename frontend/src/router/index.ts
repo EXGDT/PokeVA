@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import Cytokinins_select from '../components/Cytokinins_select.vue'
-import smile from '../components/SMILE_molstar.vue'
+import HomeViewV from '../views/HomeViewV.vue'
+import ResultView from '../views/ResultView.vue'
+import menu from '../components/Menu.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,6 +13,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/homev',
+      name: 'homev',
+      component: HomeViewV
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
@@ -20,14 +26,14 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/cytokinins',
-      name: 'cytokinins',
-      component: Cytokinins_select
+      path: '/result',
+      name: 'result',
+      component: ResultView
     },
     {
-      path: '/smile',
-      name: 'smile',
-      component: smile
+      path: '/menu',
+      name: 'menu',
+      component: menu
     }
   ]
 })
