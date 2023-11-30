@@ -5,8 +5,6 @@ import axios from 'axios'
 
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import HeaderV from '@/components/HeaderV.vue'
-import FooterV from '@/components/FooterV.vue'
 
 const route = useRoute()
 
@@ -69,7 +67,7 @@ watchEffect(() => {
 
 <template>
   <v-app>
-    <HeaderV />
+    <Header />
     <v-main class="container">
       <v-data-table-server
         v-model:items-per-page="itemsPerPage"
@@ -103,7 +101,7 @@ watchEffect(() => {
         </template>
       </v-data-table-server>
     </v-main>
-    <FooterV />
+    <Footer />
   </v-app>
 </template>
 

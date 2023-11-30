@@ -63,37 +63,37 @@ watchEffect(() => {
 </script>
 
 <template>
-      <v-data-table-server
-        v-model:items-per-page="itemsPerPage"
-        :headers="resultHeaders"
-        :items-length="totalItems"
-        :items="serverItems"
-        :loading="loading"
-        :fixed-footer="fixedFooter"
-        item-value="name"
-        @update:options="loadItems"
-      >
-        <template v-slot:item.protein_names="{ item }">
-          <div>
-            <span class="text-ellipsis" :title="item.protein_names">{{ item.protein_names }}</span>
-          </div>
-        </template>
-        <template v-slot:item.gene_names="{ item }">
-          <div>
-            <span class="text-ellipsis" :title="item.gene_names">{{ item.gene_names }}</span>
-          </div>
-        </template>
-        <template v-slot:item.organism="{ item }">
-          <div>
-            <span class="text-ellipsis" :title="item.organism">{{ item.organism }}</span>
-          </div>
-        </template>
-        <template v-slot:item.pocket_id="{ item }">
-          <div>
-            <span class="text-ellipsis" :title="item.pocket_id">{{ item.pocket_id }}</span>
-          </div>
-        </template>
-      </v-data-table-server>
+  <v-data-table-server
+    v-model:items-per-page="itemsPerPage"
+    :headers="resultHeaders"
+    :items-length="totalItems"
+    :items="serverItems"
+    :loading="loading"
+    :fixed-footer="fixedFooter"
+    item-value="name"
+    @update:options="loadItems"
+  >
+    <template v-slot:item.protein_names="{ item }">
+      <div>
+        <span class="text-ellipsis" :title="item.protein_names">{{ item.protein_names }}</span>
+      </div>
+    </template>
+    <template v-slot:item.gene_names="{ item }">
+      <div>
+        <span class="text-ellipsis" :title="item.gene_names">{{ item.gene_names }}</span>
+      </div>
+    </template>
+    <template v-slot:item.organism="{ item }">
+      <div>
+        <span class="text-ellipsis" :title="item.organism">{{ item.organism }}</span>
+      </div>
+    </template>
+    <template v-slot:item.pocket_id="{ item }">
+      <div>
+        <span class="text-ellipsis" :title="item.pocket_id">{{ item.pocket_id }}</span>
+      </div>
+    </template>
+  </v-data-table-server>
 </template>
 
 <style>
