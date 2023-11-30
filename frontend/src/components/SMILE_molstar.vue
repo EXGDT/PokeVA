@@ -45,8 +45,12 @@ onMounted(async () => {
     const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdb')
     await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')
 
+    molstarParent.value.addEventListener('wheel', (event) => {
+      event.stopPropagation();
+    }, { passive: false });
   }
 })
+
 
 const inputText = ref('');
 watch(inputText, (newValue, oldValue) => {

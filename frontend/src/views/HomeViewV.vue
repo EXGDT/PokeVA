@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 
-import Header from '@/components/Header.vue'
-import Footer from '@/components/Footer.vue'
 import HeaderV from '@/components/HeaderV.vue'
 import FooterV from '@/components/FooterV.vue'
-import Plants_select from '@/components/Plants_select.vue'
-import Cytokinins_select from '@/components/Cytokinins_select.vue'
 import SMILE_molstar from '@/components/SMILE_molstar.vue'
 import Home_left from '@/components/Home_left.vue'
 import ResultViewMain from '@/components/ResultViewMain.vue'
@@ -15,11 +11,6 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Pagination, Mousewheel } from 'swiper/modules'
-
-const smileMolstar = ref<HTMLElement | null>(null)
-const fullpageOptions = {
-  anchors: ['firstPage', 'secondPage']
-}
 
 const modules = ref([Pagination, Mousewheel])
 </script>
@@ -33,6 +24,7 @@ const modules = ref([Pagination, Mousewheel])
           direction="vertical"
           :scrollbar="{ hide: true }"
           :mousewheel="true"
+          :simulateTouch="false"
           :modules="modules"
           class="mySwiper fill-height"
         >
