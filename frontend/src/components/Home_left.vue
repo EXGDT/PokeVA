@@ -69,8 +69,8 @@ const showDatabaseResult = (event: MouseEvent, imageAlt: string) => {
 function updateParentSize() {
   if (containerRef.value) {
     parentSize.value = {
-      width: containerRef.value.offsetWidth,
-      height: containerRef.value.offsetHeight
+      width: containerRef.value.clientWidth,
+      height: containerRef.value.clientHeight
     }
   }
 }
@@ -92,7 +92,7 @@ onMounted(() => {
 
 const centerImageSize = computed(() => {
   const min_edge = Math.min(parentSize.value.width, window.innerHeight * 0.8)
-  return `${min_edge / 1.95}px` //0.125x coverage, 0.6x size, 0.6x+0.6x+0.75x = 1.95x
+  return `${min_edge / 2}px` //0.125x coverage, 0.6x size, 0.6x+0.6x+0.75x = 1.95x
 })
 
 const centerImageStyle = computed(() => ({
