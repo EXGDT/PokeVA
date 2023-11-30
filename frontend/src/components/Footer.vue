@@ -3,15 +3,16 @@ import logo from '@/assets/logo.png'
 </script>
 
 <template>
-  <footer class="container d-flex align-items-end">
-    <img :src="logo" alt="logo" class="me-3" />
-    <span class="align-self-center">&copy; 2023 Yisiong-Guo, Xindong-Xu</span>
-  </footer>
+  <v-footer app color="#428587">
+    <span class="align-self-center footer-font">CopyRight &copy; 2023 National Key Laboratory of Crop Genetic Improvement, Huazhong Agricultural University, & State Key Laboratory for Conservation and Utilization of Subtropical Agro-bioresources, Guangxi University</span>
+  </v-footer>
 </template>
 
 <style scoped>
-img {
-  width: 5vh;
-  height: 5vh;
+.footer-font {
+  color: #EBBE8B;
+  font-size: 0.9vw;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
 }
 </style>

@@ -1,34 +1,32 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import logo from '@/assets/logo.png'
+import fontLogo from '@/assets/fontLogo.svg'
 </script>
 
 <template>
-  <div class="container">
-    <header class="d-flex flex-wrap justify-content-center border-bottom">
-      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-        <img :src="logo" alt="Logo" class="me-3">
-        <span class="fs-4">PokeVA</span>
-      </a>
-
-      <ul class="nav nav-pills align-items-center">
-        <li class="nav-item align-items-center"><a href="#" class="nav-link active" aria-current="page">Home</a></li>
-        <li class="nav-item align-items-center"><a href="#" class="nav-link">Help</a></li>
-        <li class="nav-item align-items-center"><a href="#" class="nav-link">About</a></li>
-      </ul>
-    </header>
-  </div>
+  <v-app-bar app color="#428587">
+    <v-app-bar-title>
+      <img :src="fontLogo" alt="fontLogo" class="ms-6 mt-2" />
+    </v-app-bar-title>
+    <v-spacer></v-spacer>
+    <v-btn variant="text" class="btn-font">Home</v-btn>
+    <v-btn variant="text" class="btn-font">Datasets</v-btn>
+    <v-btn variant="text" class="btn-font">Job Submition</v-btn>
+    <v-btn variant="text" class="btn-font">Download</v-btn>
+    <v-btn variant="text" class="btn-font">Help</v-btn>
+  </v-app-bar>
 </template>
 
 <style scoped>
-img {
-  width: 7.5vh;
-  height: 7.5vh;
+.v-app-bar-title img {
+  width: 12vw
 }
 
-header {
-  position: sticky;
-  top: 0;
-  height: 10vh;
+.btn-font {
+  color: #EBBE8B;
+  font-size: 0.9vw;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
 }
-
 </style>
