@@ -6,6 +6,7 @@ import Footer from '@/components/Footer.vue'
 import SMILE_molstar from '@/components/SMILE_molstar.vue'
 import Home_left from '@/components/Home_left.vue'
 import ResultViewMain from '@/components/ResultViewMain.vue'
+import Home_cover from '@/components/Home_cover.vue'
 
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
@@ -18,8 +19,8 @@ const modules = ref([Pagination, Mousewheel])
 <template>
   <v-app>
     <Header />
-    <v-main>
-      <v-container class="fill-height">
+    <v-main style="background-color: #D5E4E4;">
+      <v-container fluid class="fill-height">
         <swiper
           direction="vertical"
           :scrollbar="{ hide: true }"
@@ -29,14 +30,14 @@ const modules = ref([Pagination, Mousewheel])
           class="mySwiper fill-height"
         >
           <swiper-slide>
-            <ResultViewMain />
+            <Home_cover />
           </swiper-slide>
           <swiper-slide>
             <v-row class="fill-height">
               <v-col>
                 <Home_left />
               </v-col>
-              <v-col>
+              <v-col class="mt-5">
                 <SMILE_molstar />
               </v-col>
             </v-row>

@@ -27,10 +27,10 @@ onMounted(async () => {
         [PluginConfig.Viewport.ShowSettings, true],
         [PluginConfig.Viewport.ShowAnimation, false]
       ],
-      layout:{
-        initial:{
+      layout: {
+        initial: {
           isExpanded: false,
-          regionState: {top:"hidden",left:"hidden",right:"hidden",bottom:"hidden"},
+          regionState: { top: 'hidden', left: 'hidden', right: 'hidden', bottom: 'hidden' }
         }
       }
     }
@@ -45,31 +45,59 @@ onMounted(async () => {
     const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdb')
     await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')
 
-    molstarParent.value.addEventListener('wheel', (event) => {
-      event.stopPropagation();
-    }, { passive: false });
+    molstarParent.value.addEventListener(
+      'wheel',
+      (event) => {
+        event.stopPropagation()
+      },
+      { passive: false }
+    )
   }
 })
 
+// const inputText = ref('');
+// watch(inputText, (newValue, oldValue) => {
+//   axios.post('/SMILE2pdb', { data: newValue })
+//     .then(response => {
+//       console.log(response.data);
+//     })
+//     .catch(error => {
+//       console.error(error);
+//     });
+// });
 
-const inputText = ref('');
-watch(inputText, (newValue, oldValue) => {
-  axios.post('/SMILE2pdb', { data: newValue })
-    .then(response => {
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.error(error);
-    });
-});
-
+const smilesInput = ref('')
+const handleInputChange = async () => {
+  const response = await axios.post('http://172.21.66.13:8877/smile2pdb/', {
+    smile: smilesInput.value
+  })
+  const pdbData = response.data.pdb
+  const blob = new Blob([pdbData], { type: 'chemical/x-pdb' })
+  const blobUrl = URL.createObjectURL(blob)
+  if (window.molstar) {
+  await window.molstar.clear()
+  const data = await window.molstar.builders.data.download(
+    { url: blobUrl },
+    { state: { isGhost: true } }
+  )
+  const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdb')
+  await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')}
+  URL.revokeObjectURL(blobUrl)
+}
 </script>
 
 <template>
-  <div class="input-group mb-2 mt-2">
-    <span class="input-group-text">SMILE</span>
-    <input type="text" class="form-control" placeholder="C=C(c1ccccc1)c2ccccc2">
-  </div>
+  <v-text-field
+    label="SMILE"
+    placeholder="C=C(c1ccccc1)c2ccccc2"
+    v-model="smilesInput"
+    @input="handleInputChange"
+    rounded
+    density="compact"
+    bg-color="#FBFCF9"
+    variant="solo"
+  >
+  </v-text-field>
   <div ref="molstarParent" class="h-85" style="position: relative"></div>
 </template>
 
