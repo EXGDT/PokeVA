@@ -2,7 +2,7 @@
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
-import Center_circle from '@/assets/T2T_Proteom.svg'
+import Center_circle from '@/assets/PokeVA_Circle.svg'
 import Arabidopsis_circle from '@/assets/Arabidopsis_thalinana.svg'
 import Glycine_circle from '@/assets/Glycine_max.svg'
 import Oryza_circle from '@/assets/Oryza_sativa.svg'
@@ -90,9 +90,13 @@ onMounted(() => {
   )
 })
 
+// const centerImageSize = computed(() => {
+//   const min_edge = Math.min(parentSize.value.width, window.innerHeight * 0.8)
+//   return `${min_edge / 2}px` //0.125x coverage, 0.6x size, 0.6x+0.6x+0.75x = 1.95x
+// })
 const centerImageSize = computed(() => {
-  const min_edge = Math.min(parentSize.value.width, window.innerHeight * 0.8)
-  return `${min_edge / 2}px` //0.125x coverage, 0.6x size, 0.6x+0.6x+0.75x = 1.95x
+  const min_edge = Math.min(parentSize.value.width, parentSize.value.height)
+  return `${min_edge * 0.8}px` //0.125x coverage, 0.6x size, 0.6x+0.6x+0.75x = 1.95x
 })
 
 const centerImageStyle = computed(() => ({
@@ -101,7 +105,7 @@ const centerImageStyle = computed(() => ({
 }))
 
 const surroundingImageSize = computed(() => {
-  return `${parseFloat(centerImageSize.value) * 0.6}px`
+  return `${parseFloat(centerImageSize.value) * 0.27}px`
 })
 
 const isHovered = ref(new Array(surroundingImages.value.length).fill(false))
@@ -113,16 +117,16 @@ const getSurroundingImageStyle = (index: number) => {
   let baseTransform = ''
   switch (index) {
     case 0: // Top Image
-      baseTransform = `translateY(calc(${centerImageSize.value} * -0.7))`
+      baseTransform = `translateY(calc(${centerImageSize.value} * -0.3))`
       break
     case 1: // Bottom Image
-      baseTransform = `translateY(calc(${centerImageSize.value} * 0.7))`
+      baseTransform = `translateY(calc(${centerImageSize.value} * 0.3))`
       break
     case 2: // Left Image
-      baseTransform = `translateX(calc(${centerImageSize.value} * -0.7))`
+      baseTransform = `translateX(calc(${centerImageSize.value} * -0.3))`
       break
     case 3:
-      baseTransform = `translateX(calc(${centerImageSize.value} * 0.7))`
+      baseTransform = `translateX(calc(${centerImageSize.value} * 0.3))`
   }
   let hoverTransform = isHovered.value[index] ? 'scale(1.1)' : 'scale(1)'
   return {
@@ -202,7 +206,12 @@ onBeforeUnmount(() => {
     ref="containerRef"
     class="position-relative justify-content-center align-items-center d-flex flex-grow-1 flex-colum h-100"
   >
-    <img :src="Center_circle" alt="Center Image" class="rounded-circle" :style="centerImageStyle" />
+    <img
+      :src="Center_circle"
+      alt="Center Image"
+      class="rounded-circle position-relative"
+      :style="centerImageStyle"
+    />
 
     <!-- Surrounding Images -->
     <img
@@ -213,6 +222,8 @@ onBeforeUnmount(() => {
       class="rounded-circle position-absolute surroundingImages"
       :style="getSurroundingImageStyle(index)"
       @click="showCytokinins($event, image.alt)"
+      @mouseenter="updateHoverState(index, true)"
+      @mouseleave="updateHoverState(index, false)"
     />
   </div>
   <div

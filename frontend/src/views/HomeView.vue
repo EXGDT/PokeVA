@@ -34,7 +34,7 @@ const modules = ref([Pagination, Mousewheel])
           </swiper-slide>
           <swiper-slide>
             <v-row class="fill-height">
-              <v-col>
+              <v-col class="fill-height">
                 <Home_left />
               </v-col>
               <v-col class="mt-5">

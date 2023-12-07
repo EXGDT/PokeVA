@@ -23,8 +23,8 @@ onMounted(async () => {
       config: [
         [PluginConfig.VolumeStreaming.Enabled, false],
         [PluginConfig.Viewport.ShowExpand, true],
-        [PluginConfig.Viewport.ShowControls, true],
-        [PluginConfig.Viewport.ShowSettings, true],
+        [PluginConfig.Viewport.ShowControls, false],
+        [PluginConfig.Viewport.ShowSettings, false],
         [PluginConfig.Viewport.ShowAnimation, false]
       ],
       layout: {
@@ -39,6 +39,7 @@ onMounted(async () => {
 
     const data = await window.molstar.builders.data.download(
       { url: 'https://files.rcsb.org/download/3PTB.pdb' },
+      // { url: 'https://files.rcsb.org/ligands/view/H35.cif' },
       { state: { isGhost: true } }
     )
 
@@ -88,7 +89,7 @@ const handleInputChange = async () => {
 
 <template>
   <v-text-field
-    label="SMILE"
+    label="SMILE Preview & Inverse Docking"
     placeholder="C=C(c1ccccc1)c2ccccc2"
     v-model="smilesInput"
     @input="handleInputChange"
