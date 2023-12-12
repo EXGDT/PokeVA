@@ -16,7 +16,7 @@ from rdkit.Chem import AllChem
 @api_view(["GET"])
 def searchAPI(request):
     param = (request.GET.get("plant"), request.GET.get("cyto"))
-    order_by = request.GET.get("order_by", "")
+    order_by_fields = request.GET.get("order_by", "").split(',')
     search_query = request.GET.get("search", "")
     inv_database = {
         # ('Arabidopsis', 'Abscisic_acid'): invresult.models.InvresultAbaAt,
@@ -93,8 +93,9 @@ def searchAPI(request):
                 | Q(orthodb__icontains=search_query)
                 | Q(expressionatlas__icontains=search_query)
             )
-        if order_by:
-            query_result = query_result.order_by(order_by)
+        if order_by_fields:
+            order_by_fields = [field for field in order_by_fields if field]
+            query_result = query_result.order_by(*order_by_fields)
         paginator = LimitOffsetPagination()
         result_page = paginator.paginate_queryset(query_result, request)
         serializer_class = type(
@@ -133,13 +134,144 @@ def searchPDBQT(request):
     param = (request.GET.get("plant"), request.GET.get("cyto"))
     pocket_id = request.GET.get("pocket_id")
     inv_database = {
-        ("Arabidopsis", "Abscisic_acid"): invresult.models.InvresultAbaAt,
+        # ('Arabidopsis', 'Abscisic_acid'): invresult.models.InvresultAbaAt,
+        (
+            "Arabidopsis",
+            "Abscisic_acid",
+        ): invresult.models.InvresultArabidopsisAbscisicAcid,
+        ("Arabidopsis", "Auxin"): invresult.models.InvresultArabidopsisAuxin,
+        (
+            "Arabidopsis",
+            "Brassinosteroid",
+        ): invresult.models.InvresultArabidopsisBrassinolide,
+        ("Arabidopsis", "Cytokinin"): invresult.models.InvresultArabidopsisCytokinin,
+        ("Arabidopsis", "Ethylene"): invresult.models.InvresultArabidopsisEthylene,
+        (
+            "Arabidopsis",
+            "Gibberellin",
+        ): invresult.models.InvresultArabidopsisGibberellin,
+        (
+            "Arabidopsis",
+            "Jasmonic_acid",
+        ): invresult.models.InvresultArabidopsisJasmonate,
+        (
+            "Arabidopsis",
+            "Salicylic_acid",
+        ): invresult.models.InvresultArabidopsisSalicylicAcid,
+        (
+            "Arabidopsis",
+            "Stringolactone",
+        ): invresult.models.InvresultArabidopsisStrigolactone,
+        ("Zea", "Abscisic_acid"): invresult.models.InvresultMaizeAbscisicAcid,
+        ("Zea", "Auxin"): invresult.models.InvresultMaizeAuxin,
+        ("Zea", "Cytokinin"): invresult.models.InvresultMaizeCytokinin,
+        ("Zea", "Ethylene"): invresult.models.InvresultMaizeEthylene,
+        ("Zea", "Gibberellin"): invresult.models.InvresultMaizeGibberellin,
+        ("Zea", "Jasmonic_acid"): invresult.models.InvresultMaizeJasmonate,
+        ("Zea", "Salicylic_acid"): invresult.models.InvresultMaizeSalicylicAcid,
+        ("Zea", "Stringolactone"): invresult.models.InvresultMaizeStrigolactone,
+        ("Oryza", "Abscisic_acid"): invresult.models.InvresultRiceAbscisicAcid,
+        ("Oryza", "Auxin"): invresult.models.InvresultRiceAuxin,
+        ("Oryza", "Brassinosteroid"): invresult.models.InvresultRiceBrassinolide,
+        ("Oryza", "Cytokinin"): invresult.models.InvresultRiceCytokinin,
+        ("Oryza", "Ethylene"): invresult.models.InvresultRiceEthylene,
+        ("Oryza", "Gibberellin"): invresult.models.InvresultRiceGibberellin,
+        ("Oryza", "Jasmonic_acid"): invresult.models.InvresultRiceJasmonate,
+        ("Oryza", "Salicylic_acid"): invresult.models.InvresultRiceSalicylicAcid,
+        ("Oryza", "Stringolactone"): invresult.models.InvresultRiceStrigolactone,
+        ("Glycine", "Abscisic_acid"): invresult.models.InvresultSoybeanAbscisicAcid,
+        ("Glycine", "Auxin"): invresult.models.InvresultSoybeanAuxin,
+        ("Glycine", "Cytokinin"): invresult.models.InvresultSoybeanCytokinin,
+        ("Glycine", "Ethylene"): invresult.models.InvresultSoybeanEthylene,
+        ("Glycine", "Gibberellin"): invresult.models.InvresultSoybeanGibberellin,
+        ("Glycine", "Jasmonic_acid"): invresult.models.InvresultSoybeanJasmonate,
+        ("Glycine", "Salicylic_acid"): invresult.models.InvresultSoybeanSalicylicAcid,
+        ("Glycine", "Stringolactone"): invresult.models.InvresultSoybeanStrigolactone,
     }
     query_result = inv_database.get(param).objects.get(pocket_id=pocket_id)
     if query_result is not None:
-        pdbqt_path = query_result.pdbqt_path
-        with open(pdbqt_path, "r") as file:
-            pdbqt_content = file.read()
-        return JsonResponse({"pdbqt_path": pdbqt_path, "pdbqt_content": pdbqt_content})
+        ligand_path = query_result.ligand_path
+        receptor_path = query_result.receptor_path
+        detail = query_result
+        with open(ligand_path, "r") as file:
+            ligand_content = file.read()
+        with open(receptor_path, "r") as file:
+            receptor_content = file.read()
+        return JsonResponse({"ligand_content": ligand_content, "receptor_content": receptor_content})
+    else:
+        return Response({"error": "No matching data found"}, status=404)
+
+@api_view(["GET"])
+def searchDetail(request):
+    param = (request.GET.get("plant"), request.GET.get("cyto"))
+    pocket_id = request.GET.get("pocket_id")
+    inv_database = {
+        # ('Arabidopsis', 'Abscisic_acid'): invresult.models.InvresultAbaAt,
+        (
+            "Arabidopsis",
+            "Abscisic_acid",
+        ): invresult.models.InvresultArabidopsisAbscisicAcid,
+        ("Arabidopsis", "Auxin"): invresult.models.InvresultArabidopsisAuxin,
+        (
+            "Arabidopsis",
+            "Brassinosteroid",
+        ): invresult.models.InvresultArabidopsisBrassinolide,
+        ("Arabidopsis", "Cytokinin"): invresult.models.InvresultArabidopsisCytokinin,
+        ("Arabidopsis", "Ethylene"): invresult.models.InvresultArabidopsisEthylene,
+        (
+            "Arabidopsis",
+            "Gibberellin",
+        ): invresult.models.InvresultArabidopsisGibberellin,
+        (
+            "Arabidopsis",
+            "Jasmonic_acid",
+        ): invresult.models.InvresultArabidopsisJasmonate,
+        (
+            "Arabidopsis",
+            "Salicylic_acid",
+        ): invresult.models.InvresultArabidopsisSalicylicAcid,
+        (
+            "Arabidopsis",
+            "Stringolactone",
+        ): invresult.models.InvresultArabidopsisStrigolactone,
+        ("Zea", "Abscisic_acid"): invresult.models.InvresultMaizeAbscisicAcid,
+        ("Zea", "Auxin"): invresult.models.InvresultMaizeAuxin,
+        ("Zea", "Cytokinin"): invresult.models.InvresultMaizeCytokinin,
+        ("Zea", "Ethylene"): invresult.models.InvresultMaizeEthylene,
+        ("Zea", "Gibberellin"): invresult.models.InvresultMaizeGibberellin,
+        ("Zea", "Jasmonic_acid"): invresult.models.InvresultMaizeJasmonate,
+        ("Zea", "Salicylic_acid"): invresult.models.InvresultMaizeSalicylicAcid,
+        ("Zea", "Stringolactone"): invresult.models.InvresultMaizeStrigolactone,
+        ("Oryza", "Abscisic_acid"): invresult.models.InvresultRiceAbscisicAcid,
+        ("Oryza", "Auxin"): invresult.models.InvresultRiceAuxin,
+        ("Oryza", "Brassinosteroid"): invresult.models.InvresultRiceBrassinolide,
+        ("Oryza", "Cytokinin"): invresult.models.InvresultRiceCytokinin,
+        ("Oryza", "Ethylene"): invresult.models.InvresultRiceEthylene,
+        ("Oryza", "Gibberellin"): invresult.models.InvresultRiceGibberellin,
+        ("Oryza", "Jasmonic_acid"): invresult.models.InvresultRiceJasmonate,
+        ("Oryza", "Salicylic_acid"): invresult.models.InvresultRiceSalicylicAcid,
+        ("Oryza", "Stringolactone"): invresult.models.InvresultRiceStrigolactone,
+        ("Glycine", "Abscisic_acid"): invresult.models.InvresultSoybeanAbscisicAcid,
+        ("Glycine", "Auxin"): invresult.models.InvresultSoybeanAuxin,
+        ("Glycine", "Cytokinin"): invresult.models.InvresultSoybeanCytokinin,
+        ("Glycine", "Ethylene"): invresult.models.InvresultSoybeanEthylene,
+        ("Glycine", "Gibberellin"): invresult.models.InvresultSoybeanGibberellin,
+        ("Glycine", "Jasmonic_acid"): invresult.models.InvresultSoybeanJasmonate,
+        ("Glycine", "Salicylic_acid"): invresult.models.InvresultSoybeanSalicylicAcid,
+        ("Glycine", "Stringolactone"): invresult.models.InvresultSoybeanStrigolactone,
+    }
+    query_result = inv_database.get(param).objects.get(pocket_id=pocket_id)
+    if query_result is not None:
+        serializer_class = type(
+            "DynamicInvresultSerializer",
+            (invresult.serializer.GenericInvresultSerializer,),
+            {
+                "Meta": type(
+                    "Meta", (), {"model": inv_database[(param)], "fields": "__all__"}
+                )
+            },
+        )
+        detail = serializer_class(query_result)
+        return JsonResponse(detail.data, safe=False)
     else:
         return Response({"error": "No matching data found"}, status=404)

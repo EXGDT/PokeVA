@@ -20,6 +20,14 @@ import Footer from '@/components/Footer.vue'
 
 const route = useRoute()
 
+const proteinName = ref('');
+const uniprotID = ref('');
+const geneName = ref('');
+const organism = ref('');
+const subcellularLocation = ref('');
+const string = ref('');
+const functionDescription = ref('');
+
 const molstarParent = ref<HTMLElement | null>(null)
 
 declare global {
@@ -33,13 +41,28 @@ onMounted(async () => {
   const plant = route.query.plant
   const pocket_id = route.query.pocket_id
 
+  const responseDetail = await axios.get(`http://172.21.66.13:8877/searchDetail/`, {
+    params: { cyto, plant, pocket_id }
+  })
+
+  proteinName.value = responseDetail.data.protein_names
+  uniprotID.value = responseDetail.data.uniprot_id
+  geneName.value = responseDetail.data.gene_names
+  organism.value = responseDetail.data.organism
+  subcellularLocation.value = responseDetail.data.subcellular_location
+  string.value = responseDetail.data.string
+  functionDescription.value = responseDetail.data.function_description
+  
   const response = await axios.get(`http://172.21.66.13:8877/searchPDBQT/`, {
     params: { cyto, plant, pocket_id }
   })
 
-  const pdbqtData = response.data.pdbqt_content
-  const blob = new Blob([pdbqtData], { type: 'chemical/x-pdb' })
-  const blobUrl = URL.createObjectURL(blob)
+  const ligandData = response.data.ligand_content
+  const receptorData = response.data.receptor_content
+  const blobLigand = new Blob([ligandData], { type: 'chemical/x-pdb' })
+  const blobReceptor = new Blob([receptorData], { type: 'chemical/x-pdb' })
+  const blobLigandUrl = URL.createObjectURL(blobLigand)
+  const blobReceptorUrl = URL.createObjectURL(blobReceptor)
   if (molstarParent.value !== null) {
     const MySpec: PluginSpec = {
       ...DefaultPluginUISpec(),
@@ -60,13 +83,20 @@ onMounted(async () => {
 
     window.molstar = await createPluginUI(molstarParent.value, MySpec)
 
-    const data = await window.molstar.builders.data.download(
-      { url: blobUrl },
+    const data1 = await window.molstar.builders.data.download(
+      { url: blobReceptorUrl },
       { state: { isGhost: true } }
     )
 
-    const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdbqt')
-    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')
+    const data2 = await window.molstar.builders.data.download(
+      { url: blobLigandUrl },
+      { state: { isGhost: true } }
+    )
+
+    const trajectory1 = await window.molstar.builders.structure.parseTrajectory(data1, 'pdbqt')
+    const trajectory2 = await window.molstar.builders.structure.parseTrajectory(data2, 'pdbqt')
+    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory1, 'default')
+    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory2, 'default')
 
     molstarParent.value.addEventListener(
       'wheel',
@@ -97,7 +127,32 @@ onMounted(async () => {
               <v-col class="fill-height">
                 <div ref="molstarParent" class="h-100" style="position: relative"></div>
               </v-col>
-              <v-col> </v-col>
+              <v-col>
+                <v-card class="fill-height">
+                  <v-card-title class="headline blue--text">Information</v-card-title>
+
+                  <v-card-subtitle class="pb-0">Protein name</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ proteinName }}
+                  </v-card-text>
+
+                  <v-card-subtitle class="pb-0">Gene name</v-card-subtitle>
+                  <v-card-text class="text--primary"> {{ geneName }} </v-card-text>
+
+                  <v-card-subtitle class="pb-0">Source organism</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ organism }}
+                  </v-card-text>
+
+                  <v-card-subtitle class="pb-0">UniProt ID</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ uniprotID }}
+                  </v-card-text>
+
+                  <v-card-subtitle class="pb-0">Subcellular Location</v-card-subtitle>
+                  <v-card-text class="text--primary">{{ subcellularLocation }}</v-card-text>
+                </v-card>
+              </v-col>
             </v-row>
           </swiper-slide>
           <swiper-slide>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
@@ -14,12 +14,22 @@ import 'swiper/css/pagination'
 import { Pagination, Mousewheel } from 'swiper/modules'
 
 const modules = ref([Pagination, Mousewheel])
+
+const swiperInstance = ref()
+
+function onSwiper(swiper) {
+  swiperInstance.value = swiper
+}
+
+function goToNextSlide() {
+  swiperInstance.value.slideNext()
+}
 </script>
 
 <template>
   <v-app>
     <Header />
-    <v-main style="background-color: #D5E4E4;">
+    <v-main style="background-color: #d5e4e4">
       <v-container fluid class="fill-height">
         <swiper
           direction="vertical"
@@ -28,9 +38,10 @@ const modules = ref([Pagination, Mousewheel])
           :simulateTouch="false"
           :modules="modules"
           class="mySwiper fill-height"
+          @swiper="onSwiper"
         >
           <swiper-slide>
-            <Home_cover />
+            <Home_cover @arrowClicked="goToNextSlide" />
           </swiper-slide>
           <swiper-slide>
             <v-row class="fill-height">

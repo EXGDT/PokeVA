@@ -1,6 +1,16 @@
+<script setup lang="ts">
+import { defineEmits } from 'vue';
+
+const emit = defineEmits(['arrowClicked']);
+
+const onArrowClick = () => {
+  emit('arrowClicked');
+};
+</script>
+
 <template>
   <img src="@/assets/Home_cover_nobg.svg" style="height: 100%; width: 100%" />
-  <img src="@/assets/arrow.svg" class="arrow">
+  <img src="@/assets/arrow.svg" class="arrow" @click="onArrowClick">
 </template>
 
 <style>
