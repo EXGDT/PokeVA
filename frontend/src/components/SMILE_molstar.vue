@@ -76,13 +76,14 @@ const handleInputChange = async () => {
   const blob = new Blob([pdbData], { type: 'chemical/x-pdb' })
   const blobUrl = URL.createObjectURL(blob)
   if (window.molstar) {
-  await window.molstar.clear()
-  const data = await window.molstar.builders.data.download(
-    { url: blobUrl },
-    { state: { isGhost: true } }
-  )
-  const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdb')
-  await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')}
+    await window.molstar.clear()
+    const data = await window.molstar.builders.data.download(
+      { url: blobUrl },
+      { state: { isGhost: true } }
+    )
+    const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdb')
+    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')
+  }
   URL.revokeObjectURL(blobUrl)
 }
 </script>
@@ -99,11 +100,14 @@ const handleInputChange = async () => {
     variant="solo"
   >
   </v-text-field>
-  <div ref="molstarParent" class="h-85" style="position: relative"></div>
+  <div ref="molstarParent" class="h-80" style="position: relative"></div>
+  <v-btn class="text-none mt-2 mb-2" color="green" size="large" rounded variant="flat">
+    Submit a inverse docking job with our mini datasets
+  </v-btn>
 </template>
 
 <style>
-.h-85 {
-  height: 85%;
+.h-80 {
+  height: 80%;
 }
 </style>
