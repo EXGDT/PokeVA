@@ -9,21 +9,13 @@ import Footer from '@/components/Footer.vue'
 const route = useRoute()
 const router = useRouter()
 
-const resultHeaders = ref([
-  { title: 'Pocket ID', value: 'pocket_id', align: 'start', width: '15%' },
-  { title: 'AFDB ID', value: 'afdb_id', align: 'start' },
-  { title: 'Protein Names', value: 'protein_names', align: 'start' },
-  { title: 'Gene Names', value: 'gene_names', align: 'start' },
-  { title: 'Organism', value: 'organism', align: 'start' },
-  { title: 'PDB ID', value: 'pdb', align: 'start', width: '6%' },
-  {
-    title: 'Binding affinity',
-    value: 'binding_affinity',
-    align: 'start',
-    width: '12%',
-    sortable: true
-  }
-])
+interface ResultHeader {
+  title: string
+  value: string
+  align: 'start' | 'center' | 'end' // 根据实际需要调整
+  width?: string // 可选属性
+  sortable?: boolean // 可选属性
+}
 
 interface DataItem {
   pocket_id: string
@@ -33,6 +25,7 @@ interface DataItem {
   organism: string
   pdb: string
   binding_affinity: number
+  [key: string]: string | number
 }
 
 interface PlantMapping {
@@ -53,6 +46,22 @@ interface LoadItemsParams {
   itemsPerPage: number
   sortBy: SortOption[]
 }
+
+const resultHeaders = ref<ResultHeader[]>([
+  { title: 'Pocket ID', value: 'pocket_id', align: 'start', width: '15%' },
+  { title: 'AFDB ID', value: 'afdb_id', align: 'start' },
+  { title: 'Protein Names', value: 'protein_names', align: 'start' },
+  { title: 'Gene Names', value: 'gene_names', align: 'start' },
+  { title: 'Organism', value: 'organism', align: 'start' },
+  { title: 'PDB ID', value: 'pdb', align: 'start', width: '6%' },
+  {
+    title: 'Binding affinity',
+    value: 'binding_affinity',
+    align: 'start',
+    width: '12%',
+    sortable: true
+  }
+])
 
 const plantCytoList = ref([
   {
@@ -186,7 +195,7 @@ const fetchData = async () => {
       order_by: sortByParam.value
     }
 
-    const response = await axios.get(`http://172.21.66.13:8877/searchAPI/`, { params })
+    const response = await axios.get(`/PokeVA_api/searchAPI/`, { params })
     serverResults.value = response.data.results
     serverCount.value = response.data.count
   } catch (error) {

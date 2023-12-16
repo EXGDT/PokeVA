@@ -5,17 +5,12 @@ import axios from 'axios'
 
 const route = useRoute()
 
-const resultHeaders = readonly(
-  ref([
-    { title: 'Uniprot_id', value: 'uniprot_id', align: 'start' },
-    { title: 'Protein names', value: 'protein_names', align: 'start' },
-    { title: 'Gene names', value: 'gene_names', align: 'start' },
-    { title: 'Organism', value: 'organism', align: 'start' },
-    { title: 'PDB ID', value: 'pdb', align: 'start' },
-    { title: 'Pocket ID', value: 'pocket_id', align: 'start' },
-    { title: 'Binding affinity', value: 'binding_affinity', align: 'start' }
-  ])
-)
+interface HeaderItem {
+  key: string;
+  title: string;
+  value: string;
+  align: 'start' | 'center' | 'end'; 
+}
 
 interface DataItem {
   uniprot_id: string
@@ -26,6 +21,16 @@ interface DataItem {
   pocket_id: string
   binding_affinity: number
 }
+
+const resultHeaders = ref<HeaderItem[]>([
+  { key: 'uniprot_id', title: 'Uniprot_id', value: 'uniprot_id', align: 'start' },
+  { key: 'protein_names', title: 'Protein names', value: 'protein_names', align: 'start' },
+  { key: 'gene_names', title: 'Gene names', value: 'gene_names', align: 'start' },
+  { key: 'organism', title: 'Organism', value: 'organism', align: 'start' },
+  { key: 'pdb', title: 'PDB ID', value: 'pdb', align: 'start' },
+  { key: 'pocket_id', title: 'Pocket ID', value: 'pocket_id', align: 'start' },
+  { key: 'binding_affinity', title: 'Binding affinity', value: 'binding_affinity', align: 'start' }
+])
 
 const itemsPerPage = ref(10)
 const totalItems = ref(0)
@@ -45,7 +50,7 @@ const loadItems = async ({ page, itemsPerPage }: LoadItemsParams) => {
   const limit = itemsPerPage
   const offset = (page - 1) * itemsPerPage
   try {
-    const response = await axios.get(`http://172.21.66.13:8877/searchAPI/`, {
+    const response = await axios.get(`/PokeVA_api/searchAPI/`, {
       params: { cyto, plant, limit, offset }
     })
     serverItems.value = response.data.results

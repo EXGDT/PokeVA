@@ -30,13 +30,12 @@ const modules = ref([Pagination, Mousewheel])
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 
-const resultHeaders = ref([
-  { title: 'UniRef90 ID', value: 'target', align: 'start', width: '15%' },
-  { title: 'Preotein Name', value: 'protein_name', align: 'start' },
-  { title: 'Taxonomy', value: 'taxonomy', align: 'start' },
-  { title: 'Taxonomy ID', value: 'taxid', align: 'start' },
-  { title: 'Rep ID', value: 'repid', align: 'start' }
-])
+interface ResultHeader {
+  title: string;
+  value: string;
+  align: 'start' | 'center' | 'end';
+  width?: string;
+}
 
 interface DataItem {
   target: string
@@ -54,6 +53,15 @@ interface SortOption {
   key: string
   order: 'asc' | 'desc'
 }
+
+const resultHeaders = ref<ResultHeader[]>([
+  { title: 'UniRef90 ID', value: 'target', align: 'start', width: '15%' },
+  { title: 'Preotein Name', value: 'protein_name', align: 'start' },
+  { title: 'Taxonomy', value: 'taxonomy', align: 'start' },
+  { title: 'Taxonomy ID', value: 'taxid', align: 'start' },
+  { title: 'Rep ID', value: 'repid', align: 'start' }
+])
+
 const serverCount = ref(0)
 const serverResults = ref<DataItem[]>([])
 const currentOffset = ref(0)
@@ -88,7 +96,7 @@ const fetchData = async () => {
       order_by: sortByParam.value
     }
 
-    const response = await axios.get(`http://172.21.66.13:8877/searchMMseqs/`, { params })
+    const response = await axios.get(`/PokeVA_api/searchMMseqs/`, { params })
     serverResults.value = response.data.results
     serverCount.value = response.data.count
   } catch (error) {
@@ -120,7 +128,7 @@ onMounted(async () => {
   const plant = route.query.plant
   const pocket_id = route.query.pocket_id
 
-  const responseDetail = await axios.get(`http://172.21.66.13:8877/searchDetail/`, {
+  const responseDetail = await axios.get(`/PokeVA_api/searchDetail/`, {
     params: { cyto, plant, pocket_id }
   })
 
@@ -132,7 +140,7 @@ onMounted(async () => {
   string.value = responseDetail.data.string
   functionDescription.value = responseDetail.data.function_description
 
-  const response = await axios.get(`http://172.21.66.13:8877/searchPDBQT/`, {
+  const response = await axios.get(`/PokeVA_api/searchPDBQT/`, {
     params: { cyto, plant, pocket_id }
   })
 

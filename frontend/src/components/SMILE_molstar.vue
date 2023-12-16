@@ -69,7 +69,7 @@ onMounted(async () => {
 
 const smilesInput = ref('')
 const handleInputChange = async () => {
-  const response = await axios.post('http://172.21.66.13:8877/smile2pdb/', {
+  const response = await axios.post('/PokeVA_api/smile2pdb/', {
     smile: smilesInput.value
   })
   const pdbData = response.data.pdb

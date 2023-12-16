@@ -12,12 +12,13 @@ import { Swiper, SwiperSlide } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Pagination, Mousewheel } from 'swiper/modules'
+import type { SwiperEvents } from 'swiper/types'
 
 const modules = ref([Pagination, Mousewheel])
 
 const swiperInstance = ref()
 
-function onSwiper(swiper) {
+function onSwiper(swiper: any) {
   swiperInstance.value = swiper
 }
 
