@@ -38,12 +38,13 @@ onMounted(async () => {
     window.molstar = await createPluginUI(molstarParent.value, MySpec)
 
     const data = await window.molstar.builders.data.download(
-      { url: 'https://files.rcsb.org/download/3PTB.pdb' },
+      // { url: 'https://files.rcsb.org/download/3PTB.pdb' },
       // { url: 'https://files.rcsb.org/ligands/view/H35.cif' },
+      { url: 'https://files.rcsb.org/ligands/6/605/605.cif' },
       { state: { isGhost: true } }
     )
 
-    const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'pdb')
+    const trajectory = await window.molstar.builders.structure.parseTrajectory(data, 'mmcif')
     await window.molstar.builders.structure.hierarchy.applyPreset(trajectory, 'default')
 
     molstarParent.value.addEventListener(
@@ -101,8 +102,8 @@ const handleInputChange = async () => {
   >
   </v-text-field>
   <div ref="molstarParent" class="h-80" style="position: relative"></div>
-  <v-btn class="text-none mt-2 mb-2" color="green" size="large" rounded variant="flat">
-    Submit a inverse docking job with our mini datasets
+  <v-btn class="text-none mt-5 mb-2" color="#FBFCF9" size="large" rounded variant="flat" style="min-width: 95%">
+    Submit an inverse docking job with our mini datasets
   </v-btn>
 </template>
 

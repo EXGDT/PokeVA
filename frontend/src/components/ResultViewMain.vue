@@ -98,6 +98,13 @@ watchEffect(() => {
         <span class="text-ellipsis" :title="item.pocket_id">{{ item.pocket_id }}</span>
       </div>
     </template>
+    <template v-slot:body.append>
+      <tr>
+        <td v-for="(header, index) in resultHeaders" :key="index">
+          <span v-if="index === 0">标记行内容</span>
+        </td>
+      </tr>
+    </template>
   </v-data-table-server>
 </template>
 

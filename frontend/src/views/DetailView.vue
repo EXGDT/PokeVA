@@ -151,48 +151,6 @@ onMounted(async () => {
   const blobLigandUrl = URL.createObjectURL(blobLigand)
   const blobReceptorUrl = URL.createObjectURL(blobReceptor)
 
-  type MergeStructures = typeof MergeStructures
-  const MergeStructures = PluginStateTransform.BuiltIn({
-    name: 'merge-structures',
-    display: { name: 'Merge Structures', description: 'Merge Structure' },
-    from: PSO.Root,
-    to: PSO.Molecule.Structure,
-    params: {
-      structures: PD.ObjectList(
-        {
-          ref: PD.Text('')
-        },
-        ({ ref }) => ref,
-        { isHidden: true }
-      )
-    }
-  })({
-    apply({ params, dependencies }) {
-      return Task.create('Merge Structures', async (ctx) => {
-        if (params.structures.length === 0) return StateObject.Null
-
-        const first = dependencies![params.structures[0].ref].data as Structure
-        const builder = Structure.Builder({ masterModel: first.models[0] })
-        for (const { ref } of params.structures) {
-          const s = dependencies![ref].data as Structure
-          for (const unit of s.units) {
-            // TODO invariantId
-            builder.addUnit(
-              unit.kind,
-              unit.model,
-              unit.conformation.operator,
-              unit.elements,
-              unit.traits
-            )
-          }
-        }
-
-        const structure = builder.getStructure()
-        return new PSO.Molecule.Structure(structure, { label: 'Merged Structure' })
-      })
-    }
-  })
-
   if (molstarParent.value !== null) {
     molstarParent.value.addEventListener(
       'wheel',
