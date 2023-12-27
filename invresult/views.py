@@ -72,6 +72,12 @@ mmseqs_database = {
     "Glycine": invresult.models.Mmseqs2Soybean,
     "Zea": invresult.models.Mmseqs2Maize
 }
+foldseek_database = {
+    "Arabidopsis": invresult.models.FoldseekArabidopsis,
+    "Oryza": invresult.models.FoldseekRice,
+    "Glycine": invresult.models.FoldseekSoybean,
+    "Zea": invresult.models.FoldseekMaize
+}
 
 
 @api_view(["GET"])
@@ -79,6 +85,7 @@ def searchAPI(request):
     param = (request.GET.get("plant"), request.GET.get("cyto"))
     order_by_fields = request.GET.get("order_by", "").split(',')
     search_query = request.GET.get("search", "")
+    filter_querys = request.GET.get("filter", "").split(',')
     query_result = inv_database.get(param).objects.all()
     if query_result is not None:
         if search_query:
@@ -99,6 +106,12 @@ def searchAPI(request):
                 | Q(orthodb__icontains=search_query)
                 | Q(expressionatlas__icontains=search_query)
             )
+        if filter_querys:
+            filter_conditions = [Q(**{filter_query + "__isnull": False}) for filter_query in filter_querys if filter_query]
+            filter_conditions += [Q(**{filter_query + "__gt": ''}) for filter_query in filter_querys if filter_query]
+            query_result = query_result.filter(*filter_conditions)
+            print(filter_conditions)
+
         if order_by_fields:
             order_by_fields = [field for field in order_by_fields if field]
             query_result = query_result.order_by(*order_by_fields)
@@ -143,12 +156,15 @@ def searchPDBQT(request):
     if query_result is not None:
         ligand_path = query_result.ligand_path
         receptor_path = query_result.receptor_path
+        complex_path = query_result.complex_path
         detail = query_result
         with open(ligand_path, "r") as file:
             ligand_content = file.read()
         with open(receptor_path, "r") as file:
             receptor_content = file.read()
-        return JsonResponse({"ligand_content": ligand_content, "receptor_content": receptor_content})
+        with open(complex_path, 'r') as file:
+            complex_content = file.read()
+        return JsonResponse({"ligand_content": ligand_content, "receptor_content": receptor_content, "complex_content": complex_content})
     else:
         return Response({"error": "No matching data found"}, status=404)
 
@@ -200,6 +216,42 @@ def searchMMseqs(request):
             {
                 "Meta": type(
                     "Meta", (), {"model": mmseqs_database[(param)], "fields": "__all__"}
+                )
+            },
+        )
+        serializer = serializer_class(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    else:
+        return Response({"error": "No matching data found"}, status=404)
+
+@api_view(["GET"])
+def searchFoldseek(request):
+    param = (request.GET.get("plant"))
+    pocket_id = request.GET.get("pocket_id")
+    order_by_fields = request.GET.get("order_by", "").split(',')
+    search_query = request.GET.get("search", "")
+    query_result = foldseek_database.get(param).objects.filter(pocket_id=pocket_id)
+    if query_result is not None:
+        if search_query:
+            query_result = query_result.filter(
+                Q(target__icontains=search_query)
+                | Q(query__icontains=search_query)
+                | Q(protein_name__icontains=search_query)
+                | Q(taxonomy__icontains=search_query)
+                | Q(taxid__icontains=search_query)
+                | Q(repid__icontains=search_query)
+            )
+        if order_by_fields:
+            order_by_fields = [field for field in order_by_fields if field]
+            query_result = query_result.order_by(*order_by_fields)
+        paginator = LimitOffsetPagination()
+        result_page = paginator.paginate_queryset(query_result, request)
+        serializer_class = type(
+            "DynamicInvresultSerializer",
+            (invresult.serializer.GenericInvresultSerializer,),
+            {
+                "Meta": type(
+                    "Meta", (), {"model": foldseek_database[(param)], "fields": "__all__"}
                 )
             },
         )

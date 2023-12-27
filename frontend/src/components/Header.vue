@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import logo from '@/assets/logo.png'
-import fontLogo from '@/assets/fontLogo.svg'
+import fontLogo from '@/assets/fontLogo2.svg'
 
 import { useRouter } from 'vue-router';
 
@@ -14,7 +14,7 @@ const router = useRouter();
       <img :src="fontLogo" alt="fontLogo" class="ms-6 mt-2" />
     </v-app-bar-title>
     <v-spacer></v-spacer>
-    <v-btn variant="text" class="btn-font">Home</v-btn>
+    <v-btn variant="text" class="btn-font" @click="() => router.push('/')">Home</v-btn>
     <v-btn variant="text" class="btn-font">Datasets</v-btn>
     <v-btn variant="text" class="btn-font" @click="() => router.push('/job')">Job Submission</v-btn>
     <v-btn variant="text" class="btn-font">Download</v-btn>

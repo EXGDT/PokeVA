@@ -6,7 +6,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 
 // https://vitejs.dev/config/
 
-const base = process.env.NODE_ENV === 'production' ? '/PokeVA/' : '/';
+const base = process.env.NODE_ENV === 'production' ? '/PHIPRD/' : '/';
 
 export default defineConfig({
   plugins: [

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -31,10 +31,10 @@ import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 
 interface ResultHeader {
-  title: string;
-  value: string;
-  align: 'start' | 'center' | 'end';
-  width?: string;
+  title: string
+  value: string
+  align: 'start' | 'center' | 'end'
+  width?: string
 }
 
 interface DataItem {
@@ -54,12 +54,19 @@ interface SortOption {
   order: 'asc' | 'desc'
 }
 
-const resultHeaders = ref<ResultHeader[]>([
+const resultHeadersM = ref<ResultHeader[]>([
   { title: 'UniRef90 ID', value: 'target', align: 'start', width: '15%' },
   { title: 'Preotein Name', value: 'protein_name', align: 'start' },
   { title: 'Taxonomy', value: 'taxonomy', align: 'start' },
   { title: 'Taxonomy ID', value: 'taxid', align: 'start' },
   { title: 'Rep ID', value: 'repid', align: 'start' }
+])
+const resultHeadersF = ref<ResultHeader[]>([
+  { title: 'Uniprot ID', value: 'uniprot_id', align: 'start', width: '15%' },
+  { title: 'Preotein Name', value: 'protein_names', align: 'start' },
+  { title: 'Gene Name', value: 'gene_names', align: 'start' },
+  { title: 'DOI ID', value: 'doi_id', align: 'start' },
+  { title: 'E-value', value: 'evalue', align: 'start' }
 ])
 
 const serverCount = ref(0)
@@ -80,33 +87,34 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: LoadItemsParams) => {
     const sortOrder = sortBy[0].order
     sortByParam.value = sortOrder === 'desc' ? `-${sortKey}` : sortKey
   }
-  await fetchData()
+  await fetchData(currentTab.value)
 }
 
-const fetchData = async () => {
+const fetchData = async (tab: 'tabM' | 'tabF') => {
   const plant = route.query.plant
   const pocket_id = route.query.pocket_id
-  try {
-    const params = {
-      plant: plant,
-      pocket_id: pocket_id,
-      search: searchQuery.value,
-      limit: countPerPage.value,
-      offset: currentOffset.value,
-      order_by: sortByParam.value
-    }
-
+  const params = {
+    plant: plant,
+    pocket_id: pocket_id,
+    search: searchQuery.value,
+    limit: countPerPage.value,
+    offset: currentOffset.value,
+    order_by: sortByParam.value
+  }
+  if (tab === 'tabM') {
     const response = await axios.get(`/PokeVA_api/searchMMseqs/`, { params })
     serverResults.value = response.data.results
     serverCount.value = response.data.count
-  } catch (error) {
-    console.error(error)
+  } else if (tab === 'tabF') {
+    const response = await axios.get(`/PokeVA_api/searchFoldseek/`, { params })
+    serverResults.value = response.data.results
+    serverCount.value = response.data.count
   }
 }
 
 const route = useRoute()
 
-const currentTab = ref('tabM')
+const currentTab = ref<'tabM' | 'tabF'>('tabM')
 const proteinName = ref('')
 const uniprotID = ref('')
 const geneName = ref('')
@@ -116,6 +124,8 @@ const string = ref('')
 const functionDescription = ref('')
 
 const molstarParent = ref<HTMLElement | null>(null)
+const changeMolstarFocus = ref(() => {})
+const downloadUrl = ref('')
 
 declare global {
   interface Window {
@@ -146,10 +156,14 @@ onMounted(async () => {
 
   const ligandData = response.data.ligand_content
   const receptorData = response.data.receptor_content
+  const complexData = response.data.complex_content
   const blobLigand = new Blob([ligandData], { type: 'chemical/x-pdb' })
   const blobReceptor = new Blob([receptorData], { type: 'chemical/x-pdb' })
+  const blobComplex = new Blob([complexData], { type: 'chemical/x-pdb' })
   const blobLigandUrl = URL.createObjectURL(blobLigand)
   const blobReceptorUrl = URL.createObjectURL(blobReceptor)
+  const blobComplexUrl = URL.createObjectURL(blobComplex)
+  downloadUrl.value = URL.createObjectURL(blobComplex)
 
   if (molstarParent.value !== null) {
     molstarParent.value.addEventListener(
@@ -178,93 +192,43 @@ onMounted(async () => {
     }
 
     window.molstar = await createPluginUI(molstarParent.value, MySpec)
+    changeMolstarFocus.value = () => {
+      if (window.molstar) {
+        const ligandData =
+          window.molstar.managers.structure.hierarchy.selection.structures[0]?.components[1]?.cell
+            .obj?.data
+        const ligandLoci = Structure.toStructureElementLoci(ligandData as any)
 
-    const data1 = await window.molstar.builders.data.download(
-      { url: blobReceptorUrl },
-      { state: { isGhost: true } }
-    )
+        window.molstar.managers.camera.focusLoci(ligandLoci)
+        window.molstar.managers.structure.focus.setFromLoci(ligandLoci)
+      }
+    }
 
-    const data2 = await window.molstar.builders.data.download(
-      { url: blobLigandUrl },
-      { state: { isGhost: true } }
-    )
-
-    const trajectory1 = await window.molstar.builders.structure.parseTrajectory(data1, 'pdbqt')
-    const trajectory2 = await window.molstar.builders.structure.parseTrajectory(data2, 'pdbqt')
-    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory1, 'default')
-    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory2, 'default')
-
-    // async function loadStructuresFromUrlsAndMerge(sources: { url: string, format: BuiltInTrajectoryFormat, isBinary?: boolean }[]) {
-    //   const structures: {ref: string}[] = []
-    //   for (const {url, format, isBinary} of sources) {
-    //     const data = await window.molstar?.builders.data.download({url, isBinary});
-    //     const model = await window.molstar?.builders.structure.parseTrajectory(data, format);
-    //     const modelProperties = await window.molstar?.builders.structure.insertModelProperties(model);
-    //     const structure = await window.molstar?.builders.structure.createStructure(modelProperties || model);
-    //     const structureProperties = await window.molstar?.builders.structure.insertStructureProperties(structure);
-    //     structures.push({ref: structureProperties?.ref || structure.ref })
-    //   }
-    //   window.molstar?.managers.structure.hierarchy.updateCurrent(window.molstar.managers.structure.hierarchy.current.structures, 'remove');
-    //   const dependsOn = structures.map(({ ref }) => ref);
-    //   const data = window.molstar?.state.data.build().toRoot().apply(MergeStructures, { structures }, { dependsOn });
-    //   const structure = await data?.commit();
-    //   const structureProperties = await window.molstar?.builders.insertStructureProperties(structure);
-    //   window.molstar?.behaviors.canvas3d.initialized.subscribe(async v => {
-    //     await window.molstar?.builders.structure.representation.applyPreset(structureProperties || structure, StructurePreset)
-    //   })
-    // }
-
-    // async function loadStructuresFromUrlsAndMerge(sources) {
-    //   const structures = []
-    //   for (const { url, format, isBinary } of sources) {
-    //     const data = await window.molstar.builders.data.download({ url, isBinary })
-    //     const trajectory = await window.molstar.builders.structure.parseTrajectory(data, format)
-    //     const model = await window.molstar.builders.structure.createModel(trajectory)
-    //     const modelProperties = await window.molstar.builders.structure.insertModelProperties(model)
-    //     const structure = await window.molstar.builders.structure.createStructure(
-    //       modelProperties || model
-    //     )
-    //     const structureProperties =
-    //       await window.molstar.builders.structure.insertStructureProperties(structure)
-
-    //     structures.push({ ref: structureProperties?.ref || structure.ref })
-    //   }
-
-    //   // 移除当前层级中的结构，以便合并
-    //   window.molstar.managers.structure.hierarchy.updateCurrent(
-    //     window.molstar.managers.structure.hierarchy.current.structures,
-    //     'remove'
-    //   )
-
-    //   const dependsOn = structures.map(({ ref }) => ref)
-    //   const mergeData = window.molstar.state.data
-    //     .build()
-    //     .toRoot()
-    //     .apply(MergeStructures, { structures }, { dependsOn })
-    //   const mergedStructure = await mergeData.commit()
-    //   const mergedStructureProperties =
-    //     await window.molstar.builders.structure.insertStructureProperties(mergedStructure)
-    //   window.molstar.behaviors.canvas3d.initialized.subscribe(async () => {
-    //     await window.molstar.builders.structure.representation.applyPreset(
-    //       mergedStructureProperties || mergedStructure,
-    //       StructurePreset
-    //     )
-    //   })
-    // }
-
-    // const data = window.molstar.managers.structure.hierarchy.current.structures[0]?.cell.obj?.data
-    // if (!data) return
-    // console.log(data)
-    // const selection = Script.getStructureSelection(
-    //   (Q) =>
-    //     Q.struct.generator.atomGroups({
-    //       'chain-test': Q.core.rel.eq(['B', Q.ammp('label_asym_id')])
-    //     }),
-    //   data
+    // const data1 = await window.molstar.builders.data.download(
+    //   { url: blobReceptorUrl },
+    //   { state: { isGhost: true } }
     // )
-    // const loci = StructureSelection.toLociWithSourceUnits(selection)
-    // console.log(loci)
+
+    // const data2 = await window.molstar.builders.data.download(
+    //   { url: blobLigandUrl },
+    //   { state: { isGhost: true } }
+    // )
+
+    const data3 = await window.molstar.builders.data.download(
+      { url: blobComplexUrl },
+      { state: { isGhost: true } }
+    )
+
+    // const trajectory1 = await window.molstar.builders.structure.parseTrajectory(data1, 'pdbqt')
+    // const trajectory2 = await window.molstar.builders.structure.parseTrajectory(data2, 'pdbqt')
+    const trajectory3 = await window.molstar.builders.structure.parseTrajectory(data3, 'pdbqt')
+    // await window.molstar.builders.structure.hierarchy.applyPreset(trajectory1, 'default')
+    // await window.molstar.builders.structure.hierarchy.applyPreset(trajectory2, 'default')
+    await window.molstar.builders.structure.hierarchy.applyPreset(trajectory3, 'default')
   }
+})
+watch(currentTab, () => {
+  loadItems({ page: 1, itemsPerPage: countPerPage.value, sortBy: [] })
 })
 </script>
 
@@ -283,9 +247,46 @@ onMounted(async () => {
           class="mySwiper fill-height"
         >
           <swiper-slide>
-            <v-row fluid class="fill-height">
+            <v-row class="fill-height">
               <v-col class="fill-height">
-                <div ref="molstarParent" class="h-100" style="position: relative; z-index: 5"></div>
+                <v-card
+                  class="m-0"
+                  max-width="100%"
+                  :title="proteinName"
+                  rel="noopener"
+                  variant="flat"
+                ></v-card>
+                <div
+                  ref="molstarParent"
+                  style="height: 80%; position: relative; z-index: 5; overflow: hidden"
+                ></div>
+                <v-row justify="space-between" class="mt-5">
+                  <v-col cols="5">
+                    <v-btn
+                      class="text-none"
+                      color="#428587"
+                      size="large"
+                      rounded
+                      variant="flat"
+                      style="min-width: 90%"
+                      :href="downloadUrl" download="complex.pdb"
+                    >
+                      Download Complex
+                    </v-btn></v-col
+                  ><v-col cols="5">
+                    <v-btn
+                      class="text-none"
+                      color="#428587"
+                      size="large"
+                      rounded
+                      variant="flat"
+                      style="min-width: 90%"
+                      @click="changeMolstarFocus"
+                    >
+                      Show interaction
+                    </v-btn>
+                  </v-col>
+                </v-row>
               </v-col>
               <v-col>
                 <v-card class="fill-height">
@@ -324,7 +325,7 @@ onMounted(async () => {
               <v-data-table-server
                 :items-per-page="20"
                 :items-per-page-options="[20, 50, 100]"
-                :headers="resultHeaders"
+                :headers="resultHeadersM"
                 :items-length="serverCount"
                 :items="serverResults"
                 :fixed-header="true"
@@ -337,7 +338,7 @@ onMounted(async () => {
               <v-data-table-server
                 :items-per-page="20"
                 :items-per-page-options="[20, 50, 100]"
-                :headers="resultHeaders"
+                :headers="resultHeadersF"
                 :items-length="serverCount"
                 :items="serverResults"
                 :fixed-header="true"

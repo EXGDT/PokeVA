@@ -30,6 +30,7 @@ function goToNextSlide() {
 <template>
   <v-app>
     <Header />
+    <Footer />
     <v-main style="background-color: #d5e4e4">
       <v-container fluid class="fill-height">
         <swiper
@@ -57,7 +58,6 @@ function goToNextSlide() {
         </swiper>
       </v-container>
     </v-main>
-    <Footer />
   </v-app>
 </template>
 

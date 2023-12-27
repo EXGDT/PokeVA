@@ -12,13 +12,14 @@ const router = useRouter()
 interface ResultHeader {
   title: string
   value: string
-  align: 'start' | 'center' | 'end' // 根据实际需要调整
-  width?: string // 可选属性
-  sortable?: boolean // 可选属性
+  align: 'start' | 'center' | 'end'
+  width?: string
+  sortable?: boolean
 }
 
 interface DataItem {
   pocket_id: string
+  uniprot_id: string
   entry: string
   protein_names: string
   gene_names: string
@@ -48,18 +49,17 @@ interface LoadItemsParams {
 }
 
 const resultHeaders = ref<ResultHeader[]>([
-  { title: 'Pocket ID', value: 'pocket_id', align: 'start', width: '15%' },
-  { title: 'AFDB ID', value: 'afdb_id', align: 'start' },
-  { title: 'Protein Names', value: 'protein_names', align: 'start' },
-  { title: 'Gene Names', value: 'gene_names', align: 'start' },
-  { title: 'Organism', value: 'organism', align: 'start' },
-  { title: 'PDB ID', value: 'pdb', align: 'start', width: '6%' },
+  { title: 'Pocket ID', value: 'pocket_id', align: 'start', width: '22%' },
+  { title: 'Uniprot ID', value: 'uniprot_id', align: 'start', width: '8%' },
+  { title: 'Protein Names', value: 'protein_names', align: 'start', width: '30%' },
+  { title: 'Gene Names', value: 'gene_names', align: 'start', width: '20%' },
+  { title: 'PDB ID', value: 'pdb', align: 'start', sortable: false, width: '8%' },
   {
     title: 'Binding affinity',
     value: 'binding_affinity',
     align: 'start',
     width: '12%',
-    sortable: true
+    sortable: false
   }
 ])
 
@@ -140,14 +140,25 @@ const cytoMapping: CytoMapping = {
   Brassinosteroid: 'Brassinosteroid'
 }
 
+const fixedData = ref({
+  pocket_id: 'bestPocket',
+  afdb_id: 'bestPocket',
+  uniprot_id: 'bestPocket',
+  protein_names: 'bestPocket',
+  gene_names: 'bestPocket',
+  organism: 'bestPocket',
+  pdb: 'bestPocket',
+  binding_affinity: -6.936
+})
+
 const serverCount = ref(0)
 const serverResults = ref<DataItem[]>([])
 const currentOffset = ref(0)
 const searchQuery = ref('')
+const filterQuery = ref('')
 const countPerPage = ref(25)
-const currentPage = ref(1)
 const sortByParam = ref('')
-const totalPages = computed(() => Math.ceil(serverCount.value / countPerPage.value))
+const isFiltered = ref(false)
 
 const options = reactive({
   page: 1,
@@ -170,14 +181,29 @@ const searchAPIHandles = async () => {
   await fetchData()
 }
 
+const filterAPIHandles = async () => {
+  if (isFiltered.value) {
+    filterQuery.value = ''
+    isFiltered.value = false
+  } else {
+    filterQuery.value = 'pdb'
+    isFiltered.value = true
+  }
+  await fetchData()
+}
+
 const loadItems = async ({ page, itemsPerPage, sortBy }: LoadItemsParams) => {
   countPerPage.value = itemsPerPage
   currentOffset.value = (page - 1) * itemsPerPage
   if (sortBy.length) {
-    console.log(typeof sortBy)
-    const sortKey = sortBy[0].key
-    const sortOrder = sortBy[0].order
-    sortByParam.value = sortOrder === 'desc' ? `-${sortKey}` : sortKey
+    const orderByFields = sortBy
+      .map((item) => {
+        return item.order === 'desc' ? `-${item.key}` : item.key
+      })
+      .join(',')
+    sortByParam.value = orderByFields
+  } else {
+    sortByParam.value = ''
   }
   await fetchData()
 }
@@ -185,22 +211,19 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: LoadItemsParams) => {
 const fetchData = async () => {
   const plant = route.query.plant
   const cyto = route.query.cyto
-  try {
-    const params = {
-      plant: plant,
-      cyto: cyto,
-      search: searchQuery.value,
-      limit: countPerPage.value,
-      offset: currentOffset.value,
-      order_by: sortByParam.value
-    }
-
-    const response = await axios.get(`/PokeVA_api/searchAPI/`, { params })
-    serverResults.value = response.data.results
-    serverCount.value = response.data.count
-  } catch (error) {
-    console.error(error)
+  const params = {
+    plant: plant,
+    cyto: cyto,
+    search: searchQuery.value,
+    filter: filterQuery.value,
+    limit: countPerPage.value,
+    offset: currentOffset.value,
+    order_by: sortByParam.value ? `${sortByParam.value},binding_affinity` : 'binding_affinity'
   }
+
+  const response = await axios.get(`/PokeVA_api/searchAPI/`, { params })
+  serverResults.value = response.data.results
+  serverCount.value = response.data.count
 }
 
 const toDetail = (item: DataItem) => {
@@ -258,12 +281,14 @@ const toDetail = (item: DataItem) => {
         :hover="true"
         :items-per-page="20"
         :items-per-page-options="[20, 50, 100]"
+        items-per-page-text="Results Per Page"
         :headers="resultHeaders"
         :items-length="serverCount"
         :items="serverResults"
         :fixed-header="true"
-        :multi-sort="false"
+        :multi-sort="true"
         :options.sync="options"
+        density="compact"
         @update:options="loadItems"
         class="h-100"
       >
@@ -277,16 +302,59 @@ const toDetail = (item: DataItem) => {
             density="compact"
             bg-color="#4d898d"
             variant="solo"
-            class="ms-3 mt-3 me-3 mb-0"
             hide-details
+            class="ms-3 mt-3 me-3 mb-0"
           >
+            <template v-slot:append>
+              <v-btn
+                :color="isFiltered ? 'secondary' : '#4d898d'"
+                rounded
+                v-model="filterQuery"
+                @click="filterAPIHandles"
+              >
+                Only PDB
+              </v-btn>
+            </template>
           </v-text-field>
         </template>
         <template v-slot:item="{ item }">
-          <tr @click="toDetail(item)" class="clickable-row">
-            <td v-for="header in resultHeaders" :key="header.value">
-              {{ item[header.value] }}
+          <tr>
+            <td>
+              <span
+                @click.stop="toDetail(item)"
+                class="clickable-row ellipsis-text"
+                style="max-with: 16vw"
+              >
+                {{ item.pocket_id }}
+              </span>
             </td>
+            <td>
+              <span> {{ item.uniprot_id }} </span>
+            </td>
+            <td class="ellipsis-text" style="max-width: 24vw">
+              <v-tooltip activator="parent" location="bottom">{{ item.protein_names }}</v-tooltip>
+              <span :title="item.protein_names"> {{ item.protein_names }} </span>
+            </td>
+            <td class="ellipsis-text" style="max-width: 16vw">
+              <v-tooltip activator="parent" location="bottom">{{ item.gene_names }}</v-tooltip>
+              <span> {{ item.gene_names }} </span>
+            </td>
+            <td>
+              <span> {{ item.pdb }} </span>
+            </td>
+            <td>
+              <span> {{ item.binding_affinity }} </span>
+            </td>
+          </tr>
+        </template>
+        <template v-slot:body.append>
+          <tr>
+            <td style="color: red">{{ fixedData.pocket_id }}</td>
+            <td style="color: red">{{ fixedData.uniprot_id }}</td>
+            <td style="color: red">{{ fixedData.protein_names }}</td>
+            <td style="color: red">{{ fixedData.gene_names }}</td>
+            <td style="color: red">{{ fixedData.pdb }}</td>
+            <td style="color: red">{{ fixedData.binding_affinity }}</td>
           </tr>
         </template>
       </v-data-table-server>
@@ -294,7 +362,7 @@ const toDetail = (item: DataItem) => {
   </v-app>
 </template>
 
-<style scoped>
+<style>
 .plant_select {
   background-color: #4d898d;
 }
@@ -304,4 +372,14 @@ const toDetail = (item: DataItem) => {
 .clickable-row {
   cursor: pointer;
 }
+
+.ellipsis-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* .v-table thead th span {
+  white-space: nowrap;
+} */
 </style>
