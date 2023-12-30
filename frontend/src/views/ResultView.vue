@@ -159,6 +159,8 @@ const filterQuery = ref('')
 const countPerPage = ref(25)
 const sortByParam = ref('')
 const isFiltered = ref(false)
+const activePlant = ref('Arabidopsis thaliana')
+console.log(activePlant.value)
 
 const options = reactive({
   page: 1,
@@ -170,6 +172,7 @@ const options = reactive({
 const updateDataTable = async (plantName: string, cytoName: string) => {
   const plantValue = plantMapping[plantName]
   const cytoValue = cytoMapping[cytoName]
+  activePlant.value = plantName
 
   router.push({
     query: { plant: plantValue, cyto: cytoValue }
@@ -239,6 +242,7 @@ const toDetail = (item: DataItem) => {
     }
   })
 }
+
 </script>
 
 <template>

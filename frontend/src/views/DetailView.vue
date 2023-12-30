@@ -29,6 +29,7 @@ const modules = ref([Pagination, Mousewheel])
 
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
+import type { MousewheelEvents } from 'swiper/types'
 
 interface ResultHeader {
   title: string
@@ -55,18 +56,18 @@ interface SortOption {
 }
 
 const resultHeadersM = ref<ResultHeader[]>([
-  { title: 'UniRef90 ID', value: 'target', align: 'start', width: '15%' },
-  { title: 'Preotein Name', value: 'protein_name', align: 'start' },
-  { title: 'Taxonomy', value: 'taxonomy', align: 'start' },
-  { title: 'Taxonomy ID', value: 'taxid', align: 'start' },
-  { title: 'Rep ID', value: 'repid', align: 'start' }
+  { title: 'UniRef90 ID', value: 'target', align: 'start', width: '5%' },
+  { title: 'Preotein Name', value: 'protein_names', align: 'start' },
+  { title: 'STRING', value: 'string', align: 'start' },
+  { title: 'OrthoDB', value: 'orthodb', align: 'start' },
+  { title: 'Subcellular', value: 'subcellular', align: 'start' }
 ])
 const resultHeadersF = ref<ResultHeader[]>([
-  { title: 'Uniprot ID', value: 'uniprot_id', align: 'start', width: '15%' },
+  { title: 'Uniprot ID', value: 'uniprot_id', align: 'start', width: '6%' },
   { title: 'Preotein Name', value: 'protein_names', align: 'start' },
-  { title: 'Gene Name', value: 'gene_names', align: 'start' },
-  { title: 'DOI ID', value: 'doi_id', align: 'start' },
-  { title: 'E-value', value: 'evalue', align: 'start' }
+  { title: 'STRING', value: 'string', align: 'start' },
+  { title: 'OrthoDB', value: 'orthodb', align: 'start' },
+  { title: 'Subcellular', value: 'subcellular', align: 'start' }
 ])
 
 const serverCount = ref(0)
@@ -115,13 +116,24 @@ const fetchData = async (tab: 'tabM' | 'tabF') => {
 const route = useRoute()
 
 const currentTab = ref<'tabM' | 'tabF'>('tabM')
-const proteinName = ref('')
-const uniprotID = ref('')
-const geneName = ref('')
-const organism = ref('')
-const subcellularLocation = ref('')
+const uniprot_id = ref('')
+const afdb_id = ref('')
+const binding_affinity = ref('')
+const entry = ref('')
+const pdb = ref('')
 const string = ref('')
-const functionDescription = ref('')
+const bindingdb = ref('')
+const orthodb = ref('')
+const expressionatlas = ref('')
+const gene_names = ref('')
+const protein_names = ref('')
+const organism = ref('')
+const subcellular_location = ref('')
+const function_description = ref('')
+const doi_id = ref('')
+const ligand_path = ref('')
+const receptor_path = ref('')
+const complex_path = ref('')
 
 const molstarParent = ref<HTMLElement | null>(null)
 const changeMolstarFocus = ref(() => {})
@@ -133,6 +145,19 @@ declare global {
   }
 }
 
+function handleWheel(event: WheelEvent) {
+  const element = event.currentTarget as HTMLElement;
+  
+  const atTop = element.scrollTop === 0;
+  const atBottom = element.scrollHeight - element.scrollTop <= element.clientHeight;
+
+  // 检查是否处于顶部并且尝试向上滚动，或者处于底部并且尝试向下滚动
+  if ((atTop && event.deltaY < 0) || (atBottom && event.deltaY > 0)) {
+    event.preventDefault();
+  }
+  // 在其他情况下，允许默认滚动行为
+}
+
 onMounted(async () => {
   const cyto = route.query.cyto
   const plant = route.query.plant
@@ -142,13 +167,24 @@ onMounted(async () => {
     params: { cyto, plant, pocket_id }
   })
 
-  proteinName.value = responseDetail.data.protein_names
-  uniprotID.value = responseDetail.data.uniprot_id
-  geneName.value = responseDetail.data.gene_names
-  organism.value = responseDetail.data.organism
-  subcellularLocation.value = responseDetail.data.subcellular_location
+  uniprot_id.value = responseDetail.data.uniprot_id
+  afdb_id.value = responseDetail.data.afdb_id
+  binding_affinity.value = responseDetail.data.binding_affinity
+  entry.value = responseDetail.data.entry
+  pdb.value = responseDetail.data.pdb
   string.value = responseDetail.data.string
-  functionDescription.value = responseDetail.data.function_description
+  bindingdb.value = responseDetail.data.bindingdb
+  orthodb.value = responseDetail.data.orthodb
+  expressionatlas.value = responseDetail.data.expressionatlas
+  gene_names.value = responseDetail.data.gene_names
+  protein_names.value = responseDetail.data.protein_names
+  organism.value = responseDetail.data.organism
+  subcellular_location.value = responseDetail.data.subcellular_location
+  function_description.value = responseDetail.data.function_description
+  doi_id.value = responseDetail.data.doi_id
+  ligand_path.value = responseDetail.data.ligand_path
+  receptor_path.value = responseDetail.data.receptor_path
+  complex_path.value = responseDetail.data.complex_path
 
   const response = await axios.get(`/PokeVA_api/searchPDBQT/`, {
     params: { cyto, plant, pocket_id }
@@ -252,7 +288,7 @@ watch(currentTab, () => {
                 <v-card
                   class="m-0"
                   max-width="100%"
-                  :title="proteinName"
+                  :title="protein_names"
                   rel="noopener"
                   variant="flat"
                 ></v-card>
@@ -269,7 +305,8 @@ watch(currentTab, () => {
                       rounded
                       variant="flat"
                       style="min-width: 90%"
-                      :href="downloadUrl" download="complex.pdb"
+                      :href="downloadUrl"
+                      download="complex.pdb"
                     >
                       Download Complex
                     </v-btn></v-col
@@ -294,36 +331,65 @@ watch(currentTab, () => {
 
                   <v-card-subtitle class="pb-0">Protein name</v-card-subtitle>
                   <v-card-text class="text--primary">
-                    {{ proteinName }}
+                    {{ protein_names }}
                   </v-card-text>
 
                   <v-card-subtitle class="pb-0">Gene name</v-card-subtitle>
-                  <v-card-text class="text--primary"> {{ geneName }} </v-card-text>
+                  <v-card-text class="text--primary"> {{ gene_names }} </v-card-text>
 
                   <v-card-subtitle class="pb-0">Source organism</v-card-subtitle>
                   <v-card-text class="text--primary">
                     {{ organism }}
                   </v-card-text>
-
-                  <v-card-subtitle class="pb-0">UniProt ID</v-card-subtitle>
+                  <v-card-subtitle class="pb-0">Function Description</v-card-subtitle>
                   <v-card-text class="text--primary">
-                    {{ uniprotID }}
+                    {{ function_description }}
                   </v-card-text>
 
                   <v-card-subtitle class="pb-0">Subcellular Location</v-card-subtitle>
-                  <v-card-text class="text--primary">{{ subcellularLocation }}</v-card-text>
+                  <v-card-text class="text--primary">{{ subcellular_location }}</v-card-text>
+
+                  <v-card-subtitle class="pb-0">UniProt ID</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ uniprot_id }}
+                  </v-card-text>
+
+                  <!-- <v-card-subtitle class="pb-0">AFDB ID</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ afdb_id }}
+                  </v-card-text>
+                  <v-card-subtitle class="pb-0">STRING</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ string }}
+                  </v-card-text>
+                  <v-card-subtitle class="pb-0">OrthoDB</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ orthodb }}
+                  </v-card-text>
+                  <v-card-subtitle class="pb-0">BindingDB</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ bindingdb }}
+                  </v-card-text> -->
+                  <v-card-subtitle class="pb-0">Expression Atlas</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ expressionatlas }}
+                  </v-card-text>
+                  <v-card-subtitle class="pb-0">DOI</v-card-subtitle>
+                  <v-card-text class="text--primary">
+                    {{ doi_id }}
+                  </v-card-text>
                 </v-card>
               </v-col>
             </v-row>
           </swiper-slide>
           <swiper-slide>
-            <v-container class="h-100">
+            <v-container fluid class="h-100">
               <v-tabs v-model="currentTab">
                 <v-tab value="tabM">MMseqs Uniprot90 Hits</v-tab>
                 <v-tab value="tabF">Foldseek PDB100 Hits</v-tab>
               </v-tabs>
               <v-data-table-server
-                :items-per-page="20"
+                :items-per-page="10"
                 :items-per-page-options="[20, 50, 100]"
                 :headers="resultHeadersM"
                 :items-length="serverCount"
@@ -331,12 +397,10 @@ watch(currentTab, () => {
                 :fixed-header="true"
                 @update:options="loadItems"
                 v-show="currentTab === 'tabM'"
-                @wheel.stop
-                class="h-100"
               >
               </v-data-table-server>
               <v-data-table-server
-                :items-per-page="20"
+                :items-per-page="10"
                 :items-per-page-options="[20, 50, 100]"
                 :headers="resultHeadersF"
                 :items-length="serverCount"
@@ -344,8 +408,6 @@ watch(currentTab, () => {
                 :fixed-header="true"
                 @update:options="loadItems"
                 v-show="currentTab === 'tabF'"
-                @wheel.stop
-                class="h-100"
               >
               </v-data-table-server>
             </v-container>

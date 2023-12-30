@@ -67,10 +67,10 @@ inv_database = {
     ("Glycine", "Stringolactone"): invresult.models.InvresultSoybeanStrigolactone,
 }
 mmseqs_database = {
-    "Arabidopsis": invresult.models.Mmseqs2Arabidopsis,
-    "Oryza": invresult.models.Mmseqs2Rice,
-    "Glycine": invresult.models.Mmseqs2Soybean,
-    "Zea": invresult.models.Mmseqs2Maize
+    "Arabidopsis": invresult.models.MmseqsArabidopsis,
+    "Oryza": invresult.models.MmseqsRice,
+    "Glycine": invresult.models.MmseqsSoybean,
+    "Zea": invresult.models.MmseqsMaize
 }
 foldseek_database = {
     "Arabidopsis": invresult.models.FoldseekArabidopsis,
@@ -200,10 +200,7 @@ def searchMMseqs(request):
             query_result = query_result.filter(
                 Q(target__icontains=search_query)
                 | Q(query__icontains=search_query)
-                | Q(protein_name__icontains=search_query)
-                | Q(taxonomy__icontains=search_query)
-                | Q(taxid__icontains=search_query)
-                | Q(repid__icontains=search_query)
+                | Q(protein_names__icontains=search_query)
             )
         if order_by_fields:
             order_by_fields = [field for field in order_by_fields if field]
