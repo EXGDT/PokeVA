@@ -8,7 +8,7 @@ import Home_left from '@/components/Home_left.vue'
 import ResultViewMain from '@/components/ResultViewMain.vue'
 import Home_cover from '@/components/Home_cover.vue'
 
-import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Swiper, SwiperSlide, useSwiper } from 'swiper/vue'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import { Pagination, Mousewheel } from 'swiper/modules'

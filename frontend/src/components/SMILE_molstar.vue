@@ -103,7 +103,7 @@ const handleInputChange = async () => {
   </v-text-field>
   <div ref="molstarParent" class="h-80" style="position: relative"></div>
   <v-btn class="text-none mt-5 mb-2" color="#FBFCF9" size="large" rounded variant="flat" style="min-width: 95%">
-    Submit an inverse docking job with our mini datasets
+    Submit an inverse docking job with our datasets
   </v-btn>
 </template>
 
