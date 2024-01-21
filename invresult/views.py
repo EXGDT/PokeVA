@@ -256,3 +256,5 @@ def searchFoldseek(request):
         return paginator.get_paginated_response(serializer.data)
     else:
         return Response({"error": "No matching data found"}, status=404)
+
+

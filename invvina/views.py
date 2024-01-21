@@ -14,16 +14,17 @@ from django.db.models import Q
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-@api_view(["POST"])
-def smile2pdb(request):
-    smile = request.data.get("smile")
 
-    def smiles_to_pdb(smile):
-        molecule = Chem.MolFromSmiles(smile)
-        molecule = Chem.AddHs(molecule)
-        AllChem.EmbedMolecule(molecule, AllChem.ETKDG())
-        pdb_block = Chem.MolToPDBBlock(molecule)
-        return pdb_block
+def create_task(request):
+    if request.method == 'POST':
+        data = request.POST
+        task = invresult.models.Task.objects.create(
+            smiles_input=data.get('smilesInput'),
+            protein_list=data.get('proteinList'),
+            email_address=data.get('mailAddress'),
+            plant=data.get('step2Plant'),
+            status='pending'
+        )
+        return JsonResponse({'status': 'success', 'task_id': task.id})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
-    pdb_data = smiles_to_pdb(smile)
-    return Response({"pdb": pdb_data}, status=200)
