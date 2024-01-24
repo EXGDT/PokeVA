@@ -1,10 +1,10 @@
 from django.db import models
+import uuid
 
 # Create your models here.
 
-from django.db import models
-
-class Task(models.Model):
+class InvvinaTask(models.Model):
+    jobid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     smiles_input = models.CharField(max_length=1024)
     protein_list = models.TextField()
     plant = models.CharField(max_length=100)
@@ -12,7 +12,7 @@ class Task(models.Model):
     status = models.CharField(max_length=50)
 
 
-class TaskReuslt(models.Model):
+class InvvinaTaskReuslt(models.Model):
     smile = models.CharField(max_length=1024)
     plant = models.CharField(max_length=100)
     pocket_id = models.CharField(db_column='Pocket_ID', primary_key=True, max_length=50)  # Field name made lowercase.

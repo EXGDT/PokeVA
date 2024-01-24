@@ -4,7 +4,7 @@ import invresult.models
 import subprocess
 import os
 
-protein_list = ['A0A140JWM8', 'A0A178U7J2']
+protein_list = "A0A140JWM8\nA0A178U7J2"
 plant = 'soybean'
 smile = ''
 
@@ -40,3 +40,5 @@ def run_vina_docking(plant, smile, protein_list, email_address):
                 print(f"{line[:-5]} finished successfully :-)")
             else:
                 print(f"Error in processing {line[:-5]}: {result.stderr}")
+
+run_vina_docking(plant, smile, protein_list, email_address='401522126@qq.com')
