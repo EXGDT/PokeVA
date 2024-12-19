@@ -93,7 +93,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "PokeVA_web",
-        "HOST": "localhost",
+        #"HOST": "localhost",
+        "HOST": "172.21.66.13",
         "PORT": "3306",
         "USER": "pokeva",
         "PASSWORD": "pokeva",
